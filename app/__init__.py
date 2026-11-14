@@ -15,7 +15,8 @@ from .security import ROLES, csrf_input, load_user
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# تحميل ملف .env محليًا إن وُجد، دون الاعتماد عليه في بيئة الإنتاج.
+
+# تحميل ملف .env محليًا إن وُجد.
 try:
     from dotenv import load_dotenv
 
@@ -32,42 +33,38 @@ def _project_path(value, default):
 
 
 def create_app(db_path=None, uploads_dir=None):
+    """إنشاء وتهيئة تطبيق Flask."""
     app = Flask(__name__)
 
+    # تحديد مسارات التخزين حسب بيئة التشغيل.
     is_vercel = os.environ.get("VERCEL") == "1"
 
-    # Vercel يسمح بالكتابة داخل /tmp فقط.
     if is_vercel:
-        default_db = "/tmp/greenharvest.db"
-        default_uploads = "/tmp/greenharvest_uploads"
+        database_path = db_path or "/tmp/greenharvest.db"
+        uploads_path = uploads_dir or "/tmp/greenharvest_uploads"
     else:
-        default_db = _project_path(None, "greenharvest.db")
-        default_uploads = _project_path(None, "uploads")
+        database_path = db_path or _project_path(
+            os.environ.get("DATABASE"), "greenharvest.db"
+        )
+        uploads_path = uploads_dir or _project_path(
+            os.environ.get("UPLOADS"), "uploads"
+        )
 
+    # إعدادات التطبيق.
     app.config.update(
         SECRET_KEY=os.environ.get("SECRET_KEY") or secrets.token_hex(32),
-
-        DB=db_path or _project_path(
-            os.environ.get("DATABASE"),
-            default_db
-        ) if not db_path else db_path,
-
-        UPLOADS=uploads_dir or (
-            os.environ.get("UPLOADS")
-            if os.environ.get("UPLOADS") and os.path.isabs(os.environ["UPLOADS"])
-            else _project_path(os.environ.get("UPLOADS"), default_uploads)
-        ),
-
+        DB=database_path,
+        UPLOADS=uploads_path,
         MAX_CONTENT_LENGTH=25 * 1024 * 1024,
-
         GEMINI_API_KEY=os.environ.get("GEMINI_API_KEY", "").strip(),
         GEMINI_MODEL=os.environ.get("GEMINI_MODEL", "").strip()
         or "gemini-3.8-flash",
     )
 
-    # إنشاء مجلد الرفع وقاعدة البيانات في المسار المسموح.
+    # إنشاء مجلد الرفع.
     os.makedirs(app.config["UPLOADS"], exist_ok=True)
 
+    # التحقق من إعداد Gemini.
     if not app.config["GEMINI_API_KEY"]:
         logging.getLogger("greenharvest").warning(
             "GEMINI_API_KEY مش مضبوط؛ المساعد الذكي لن يعمل."
@@ -76,6 +73,7 @@ def create_app(db_path=None, uploads_dir=None):
     # تهيئة قاعدة البيانات.
     init_db(app.config["DB"])
 
+    # إعدادات الطلبات.
     app.teardown_appcontext(close_db)
     app.before_request(load_user)
 
@@ -103,6 +101,7 @@ def create_app(db_path=None, uploads_dir=None):
             "csrf_token": session.get("csrf", ""),
         }
 
+    # معالجة أخطاء HTTP.
     @app.errorhandler(400)
     @app.errorhandler(403)
     @app.errorhandler(413)
@@ -111,6 +110,7 @@ def create_app(db_path=None, uploads_dir=None):
     def http_error(error):
         return render_template("errors/error.html", e=error), error.code
 
+    # استيراد وتسجيل مسارات المشروع.
     from .blueprints import (
         assistant,
         auth,
@@ -142,6 +142,7 @@ def create_app(db_path=None, uploads_dir=None):
     for module in blueprints:
         app.register_blueprint(module.bp)
 
+    # أمر إنشاء حساب المدير.
     @app.cli.command("create-admin")
     def create_admin():
         """إنشاء حساب مدير."""
