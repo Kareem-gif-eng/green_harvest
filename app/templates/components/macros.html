@@ -1,0 +1,8 @@
+{% macro empty(text) -%}
+  <p class="empty">{{ text }}</p>
+{%- endmacro %}
+
+{# أيقونة من sprite الموقع. aria-hidden عشان النص بجانبها هو اللي بيتقري #}
+{% macro icon(name) -%}
+  <svg class="ico" aria-hidden="true" focusable="false"><use href="{{ url_for('static', filename='img/icons.svg') }}#i-{{ name }}"></use></svg>
+{%- endmacro %}

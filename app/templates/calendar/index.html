@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import empty %}
+{% block title %}التقويم الزراعي{% endblock %}
+{% block content %}
+<h1>التقويم الزراعي</h1>
+<p class="muted">مواعيد الحصاد هنا تقديرية: تاريخ الزراعة + عدد الأيام اللي أدخلته لكل محصول. عدّل المحصول من لوحتك لو الموعد اتغير.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>المحصول</th><th>الحقل</th><th>تاريخ الزراعة</th><th>الحصاد التقديري</th><th>الحالة</th></tr></thead>
+  <tbody>
+  {% for it in items %}
+    <tr>
+      <td>{{ it.crop.name }}</td>
+      <td>{{ it.crop.field or '' }}</td>
+      <td>{{ it.planted.isoformat() }}</td>
+      <td>{{ it.harvest.isoformat() }}</td>
+      <td>
+        {% if it.left < 0 %}<span class="badge">تجاوز الموعد التقديري بـ {{ -it.left }} يوم</span>
+        {% elif it.left == 0 %}<span class="badge">موعد الحصاد اليوم</span>
+        {% else %}<span class="badge">بعد {{ it.left }} يوم</span>{% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5">{{ empty("لا توجد محاصيل بموعد محسوب بعد.") }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if missing %}
+  <h2>محاصيل ناقصة البيانات</h2>
+  <p class="warn">أكمل تاريخ الزراعة وعدد أيام الحصاد لهذه المحاصيل حتى تظهر في التقويم:</p>
+  <ul>
+  {% for c in missing %}<li>{{ c.name }}</li>{% endfor %}
+  </ul>
+{% endif %}
+<p><a class="btn" href="{{ url_for('dashboard.home') }}">إلى لوحتي</a></p>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% from "components/macros.html" import icon %}
+{% from "components/macros.html" import empty %}
+<div class="grid stats">
+  <div class="card stat"><span class="num">{{ crops|length }}</span>محاصيل</div>
+  <div class="card stat"><span class="num">{{ diags }}</span>تشخيصات</div>
+  <div class="card stat"><span class="num">{{ prods }}</span>منتجات معروضة</div>
+</div>
+
+<div class="actions">
+  <a class="btn" href="{{ url_for('market.product_form') }}">{{ icon('plus') }} عرض منتج للبيع</a>
+  <a class="btn" href="{{ url_for('assistant.page') }}">{{ icon('chat') }} مساعدك الزراعي 🌱</a>
+  <a class="btn" href="{{ url_for('diagnosis.diagnose') }}">{{ icon('leaf') }} تشخيص نبات</a>
+  <a class="btn" href="{{ url_for('farm_calendar.index') }}">{{ icon('calendar') }} التقويم الزراعي</a>
+</div>
+
+<h2>محاصيلي</h2>
+<form method="post" action="{{ url_for('dashboard.crop_add') }}" class="card form-row">
+  {{ csrf_field }}
+  <label>المحصول<input id="crop_name" name="name" required></label>
+  <label>تاريخ الزراعة<input type="date" name="planting_date"></label>
+  <label>الحقل<input id="field" name="field"></label>
+  <label>أيام الحصاد التقريبية<input type="number" name="harvest_days" min="1" max="730" placeholder="مثال: 90"></label>
+  <label>ملاحظات<input id="crop_notes" name="notes"></label>
+  <button class="btn">{{ icon('plus') }} إضافة</button>
+</form>
+
+{% for c in crops %}
+  <div class="card list-item">
+    <div>
+      <strong>{{ c.name }}</strong> <span class="muted">{{ c.field or '' }}</span>
+      <div class="muted">
+        زراعة: {{ c.planting_date or 'بدون تاريخ' }}
+        · حصاد تقريبي بعد {{ c.harvest_days or '—' }} يوم
+      </div>
+      {% if c.notes %}<div class="muted">{{ c.notes }}</div>{% endif %}
+    </div>
+    <form method="post" action="{{ url_for('dashboard.crop_delete', i=c.id) }}">
+      {{ csrf_field }}<button class="btn danger">{{ icon('trash') }} حذف</button>
+    </form>
+  </div>
+{% else %}
+  {{ empty("لم تسجّل محاصيل بعد. أضف أول محصول من النموذج أعلاه.") }}
+{% endfor %}

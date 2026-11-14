@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}خطأ {{ e.code }}{% endblock %}
+{% block content %}
+<section class="card center">
+  <h1>{{ e.code }}</h1>
+  <p>{{ {400: 'الطلب غير صالح. حدّث الصفحة وحاول مرة أخرى.',
+         403: 'ليس لديك صلاحية لهذه الصفحة.',
+         404: 'الصفحة غير موجودة.',
+         405: 'طريقة الطلب غير مدعومة هنا.',
+         413: 'حجم الملفات كبير أوي. صغّر الصور وحاول تاني.'}.get(e.code, 'حدث خطأ.') }}</p>
+  <a class="btn" href="{{ url_for('main.index') }}">الرئيسية</a>
+</section>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% from "components/macros.html" import icon %}<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} | حصاد أخضر</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css') }}">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="{{ url_for('main.index') }}">🌱 حصاد أخضر</a>
+  <nav class="nav">
+    <a href="{{ url_for('main.index') }}">{{ icon('home') }} الرئيسية</a>
+    <a href="{{ url_for('assistant.page') }}" class="nav-main">{{ icon('chat') }} مساعدك الزراعي 🌱</a>
+    <a href="{{ url_for('market.index') }}">{{ icon('market') }} السوق</a>
+    <a href="{{ url_for('main.impact_page') }}">{{ icon('sprout') }} الأثر</a>
+    {% if user %}
+      <a href="{{ url_for('dashboard.home') }}">{{ icon('user') }} لوحتي</a>
+      {% if user.role == 'farmer' %}
+        <a href="{{ url_for('diagnosis.diagnose') }}">{{ icon('leaf') }} تشخيص النبات</a>
+        <a href="{{ url_for('farm_calendar.index') }}">{{ icon('calendar') }} التقويم</a>
+      {% endif %}
+      {% if user.role in ('farmer', 'charity') %}
+        <a href="{{ url_for('donations.index') }}">{{ icon('donate') }} التبرعات</a>
+      {% endif %}
+      <a href="{{ url_for('orders.index') }}">{{ icon('check') }} الطلبات</a>
+      <a href="{{ url_for('notifications.index') }}">{{ icon('bell') }} الإشعارات{% if unread %} <span class="count">{{ unread }}</span>{% endif %}</a>
+      <form method="post" action="{{ url_for('auth.logout') }}" class="inline">
+        {{ csrf_field }}<button class="link-btn" type="submit">{{ icon('logout') }} خروج</button>
+      </form>
+    {% else %}
+      <a href="{{ url_for('auth.login') }}">{{ icon('user') }} دخول</a>
+      <a href="{{ url_for('auth.register') }}">حساب جديد</a>
+    {% endif %}
+  </nav>
+</header>
+
+<div id="reader-bar" class="reader-bar" role="region" aria-label="قراءة الصفحة" data-no-read>
+  <button type="button" id="read-page" class="reader-btn primary">{{ icon('speaker') }} اقرأ الصفحة</button>
+  <button type="button" id="read-pause" class="reader-btn" hidden>{{ icon('pause') }} وقّف مؤقتاً</button>
+  <button type="button" id="read-stop" class="reader-btn danger" hidden>{{ icon('stop') }} إيقاف الصوت</button>
+  <label class="reader-speed">سرعة القراءة
+    <select id="read-speed">
+      <option value="0.75">بطيئة</option>
+      <option value="0.95" selected>عادية</option>
+      <option value="1.2">سريعة</option>
+    </select>
+  </label>
+  <span id="reader-status" class="reader-status" role="status" aria-live="polite"></span>
+</div>
+
+<main class="container">
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="flash flash-{{ category }}" role="status">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">حصاد أخضر — مشروع تخرج</footer>
+
+<script src="{{ url_for('static', filename='js/voice.js') }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

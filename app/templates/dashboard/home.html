@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}لوحتي{% endblock %}
+{% block content %}
+<h1>أهلاً {{ user.name }} <span class="badge">{{ ROLES.get(user.role, 'مستخدم') }}</span></h1>
+{% if user.role == 'farmer' %}
+  {% include "dashboard/_farmer.html" %}
+{% elif user.role == 'charity' %}
+  {% include "dashboard/_charity.html" %}
+{% elif user.role == 'admin' %}
+  {% include "dashboard/_admin.html" %}
+{% else %}
+  {% include "dashboard/_general.html" %}
+{% endif %}
+{% endblock %}

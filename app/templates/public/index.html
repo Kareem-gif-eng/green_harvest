@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon %}
+{% block title %}الرئيسية{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>من الحقل للمحتاج، بلا هدر</h1>
+  <p>سجّل محاصيلك، واسأل مساعدك الزراعي عن أي مشكلة، وبِع الفائض أو تبرّع به لجمعية.</p>
+  <div class="actions">
+    <a class="btn btn-light" href="{{ url_for('assistant.page') }}">{{ icon('chat') }} اسأل مساعدك الزراعي 🌱</a>
+    <a class="btn btn-outline" href="{{ url_for('auth.register') }}">{{ icon('user') }} إنشاء حساب</a>
+  </div>
+</section>
+
+<section class="grid">
+  <article class="card">
+    <h2>{{ icon('sprout') }} مزارعون</h2>
+    <p>إدارة المحاصيل والتقويم الزراعي وسجل التشخيص وبيع الفائض.</p>
+  </article>
+  <article class="card">
+    <h2>{{ icon('donate') }} جمعيات خيرية</h2>
+    <p>اطلب التبرعات الغذائية وحدّد موعد الاستلام.</p>
+  </article>
+  <article class="card">
+    <h2>{{ icon('chat') }} مساعدك الزراعي</h2>
+    <p>اسأل عن أي مشكلة في زرعتك، وابعت صور النبات، واسمع الرد بصوت عالي.</p>
+  </article>
+</section>
+
+<h2>الأثر الفعلي حتى الآن</h2>
+{% include "public/stats.html" %}
+{% endblock %}

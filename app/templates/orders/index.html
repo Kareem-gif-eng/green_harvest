@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import empty %}
+{% block title %}الطلبات{% endblock %}
+{% block content %}
+{% set L = {'pending': 'قيد الانتظار', 'accepted': 'مقبول', 'rejected': 'مرفوض', 'completed': 'مكتمل', 'cancelled': 'ملغي'} %}
+<h1>طلبات الشراء</h1>
+
+<h2>طلباتي كمشترٍ</h2>
+{% for o in mine %}
+  <div class="card list-item">
+    <div>
+      <strong>{{ o.pname }}</strong> — {{ '%g'|format(o.qty_kg) }} كجم — البائع: {{ o.seller }}
+      {% if o.status == 'accepted' %}<span class="muted">({{ o.sphone or '' }})</span>{% endif %}
+      <span class="badge">{{ L[o.status] }}</span>
+    </div>
+    {% if o.status in ('pending', 'accepted') %}
+      <form method="post" action="{{ url_for('orders.status', i=o.id) }}">
+        {{ csrf_field }}<button name="status" value="cancelled" class="btn danger">إلغاء</button>
+      </form>
+    {% endif %}
+  </div>
+{% else %}
+  {{ empty("لا توجد طلبات.") }}
+{% endfor %}
+
+<h2>طلبات واردة على منتجاتي</h2>
+{% for o in incoming %}
+  <div class="card list-item">
+    <div>
+      <strong>{{ o.pname }}</strong> — {{ '%g'|format(o.qty_kg) }} كجم — {{ o.buyer }}
+      <span class="badge">{{ L[o.status] }}</span>
+    </div>
+    <form method="post" action="{{ url_for('orders.status', i=o.id) }}" class="actions-inline">
+      {{ csrf_field }}
+      {% if o.status == 'pending' %}
+        <button name="status" value="accepted" class="btn">قبول</button>
+        <button name="status" value="rejected" class="btn danger">رفض</button>
+      {% elif o.status == 'accepted' %}
+        <button name="status" value="completed" class="btn">تم التسليم</button>
+        <button name="status" value="rejected" class="btn danger">إلغاء الحجز</button>
+      {% endif %}
+    </form>
+  </div>
+{% else %}
+  {{ empty("لا توجد طلبات واردة.") }}
+{% endfor %}
+{% endblock %}

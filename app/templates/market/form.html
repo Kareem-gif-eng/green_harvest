@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ 'تعديل منتج' if p else 'منتج جديد' }}{% endblock %}
+{% block content %}
+<h1>{{ 'تعديل منتج' if p else 'منتج جديد' }}</h1>
+<form method="post" enctype="multipart/form-data" class="card form-narrow">
+  {{ csrf_field }}
+  <label>الاسم<input id="name" name="name" value="{{ p.name if p else '' }}" required></label>
+  <label>نوع المحصول<input id="crop" name="crop" value="{{ p.crop if p and p.crop else '' }}"></label>
+  <label>الكمية (كجم)
+    <input name="quantity_kg" type="number" step="any" min="0.01" value="{{ p.quantity_kg if p else '' }}" required>
+  </label>
+  <label>السعر لكل كجم (ج)
+    <input name="price_per_kg" type="number" step="any" min="0" value="{{ p.price_per_kg if p else '' }}" required>
+  </label>
+  <label>المدينة<input name="city" value="{{ p.city if p and p.city else '' }}"></label>
+  <label>تاريخ الحصاد<input type="date" name="harvest_date" value="{{ p.harvest_date if p and p.harvest_date else '' }}"></label>
+  <label>الوصف<textarea id="description" name="description">{{ p.description if p and p.description else '' }}</textarea></label>
+  <label>صورة<input type="file" name="image" accept="image/png,image/jpeg,image/webp"></label>
+  <button class="btn btn-block">حفظ</button>
+</form>
+{% endblock %}

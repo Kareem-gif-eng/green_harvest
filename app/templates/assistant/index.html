@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon %}
+{% block title %}المساعد الزراعي الذكي{% endblock %}
+{% block content %}
+<section class="assistant-hero">
+  <div class="assistant-hero-copy">
+    <span class="eyebrow"><span class="status-dot"></span> مساعدك الزراعي الذكي</span>
+    <h1>خلّي عندك <span>خبير زراعي</span> في جيبك</h1>
+    <p>اسأل عن المحاصيل والري والتسميد والآفات، أو ارفع صورة للنبات وخد تحليل مبدئي وخطوات واضحة.</p>
+    <div class="assistant-meta">
+      <span class="ai-model-pill">{{ model_name }}</span>
+      <span>{{ icon('image') }} تحليل الصور</span>
+      <span>{{ icon('speaker') }} ردود صوتية</span>
+    </div>
+  </div>
+  <div class="assistant-hero-art" aria-hidden="true">
+    <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+    <div class="hero-leaf">{{ icon('sprout') }}</div>
+    <span class="spark spark-a">✳</span><span class="spark spark-b">✦</span>
+  </div>
+</section>
+
+{% if not enabled %}
+  <div class="ai-disabled-note" role="alert">
+    <strong>المساعد غير مفعّل حالياً</strong>
+    <span>يحتاج المدير إلى إضافة GEMINI_API_KEY في ملف .env ثم إعادة تشغيل التطبيق.</span>
+  </div>
+{% endif %}
+
+<div id="assistant" class="assistant-workspace"
+     data-enabled="{{ 'yes' if enabled else 'no' }}"
+     data-max-images="{{ max_images }}"
+     data-message-url="{{ url_for('assistant.message') }}"
+     data-csrf="{{ csrf_token }}">
+
+  <aside class="assistant-rail">
+    <div class="rail-card rail-intro">
+      <span class="rail-icon">{{ icon('sprout') }}</span>
+      <h2>ابدأ من سؤالك</h2>
+      <p>كل ما توصف المشكلة بشكل أوضح، المساعد يقدر يوجّهك بشكل أدق.</p>
+    </div>
+    <div class="rail-card">
+      <h3>جرّب تسأل عن</h3>
+      <button class="prompt-chip" type="button" data-prompt="أوراق الطماطم عندي فيها بقع صفراء. إيه الأسباب المحتملة وأعمل إيه؟">{{ icon('leaf') }} بقع على الأوراق</button>
+      <button class="prompt-chip" type="button" data-prompt="إزاي أحدد مواعيد ري محصولي حسب الجو ونوع التربة؟">{{ icon('drop') }} تنظيم الري</button>
+      <button class="prompt-chip" type="button" data-prompt="إيه العلامات اللي أعرف منها إن النبات محتاج تسميد؟">{{ icon('sprout') }} التسميد</button>
+      <button class="prompt-chip" type="button" data-prompt="إزاي أتعامل مع الحشرات اللي بتظهر على المحصول بطريقة آمنة؟">{{ icon('check') }} الآفات الزراعية</button>
+    </div>
+    <div class="rail-tip">
+      <span>{{ icon('sun') }}</span>
+      <p><strong>نصيحة:</strong> صوّر الورقة المصابة من قريب، وصورة للنبات بالكامل، واكتب اسم المحصول وعمره.</p>
+    </div>
+  </aside>
+
+  <section class="assistant-panel" aria-label="محادثة المساعد الزراعي">
+    <header class="chat-header">
+      <div class="chat-avatar">{{ icon('sprout') }}</div>
+      <div class="chat-heading">
+        <h2>مساعد حصاد أخضر</h2>
+        <span><i class="status-dot"></i> {{ 'متصل وجاهز للمساعدة' if enabled else 'في انتظار تفعيل الخدمة' }}</span>
+      </div>
+      <div class="chat-header-model">AI <b>●</b></div>
+    </header>
+
+    <div id="chat" class="chat" aria-live="polite" aria-label="رسائل المحادثة">
+      {% for m in messages %}
+        <article class="bubble {{ 'mine' if m.role == 'user' else 'bot' }}" data-speak-scope>
+          <div class="who"><span class="message-avatar">{{ 'أنت' if m.role == 'user' else icon('sprout') }}</span><span>{{ 'رسالتك' if m.role == 'user' else 'مساعد حصاد أخضر' }}</span></div>
+          <div class="bubble-text" data-speak-text>{{ m.text }}</div>
+          {% for f in images.get(m.id, []) %}
+            <img class="chat-img" src="{{ url_for('media.uploaded', name=f) }}" alt="صورة أرسلتها للمساعد">
+          {% endfor %}
+          {% if m.role == 'assistant' %}
+            <button type="button" class="speak-btn" aria-label="اسمع الرد بصوت عالي">{{ icon('speaker') }} اسمع الرد</button>
+          {% endif %}
+        </article>
+      {% else %}
+        <div class="welcome-state" id="empty-note">
+          <div class="welcome-mark">{{ icon('sprout') }}</div>
+          <h3>أهلاً بيك، نبدأ منين؟</h3>
+          <p>احكيلي اللي بيحصل في أرضك، أو ابعت صورة للنبات وأنا هساعدك تفهم الاحتمالات والخطوات الجاية.</p>
+          <span class="welcome-hint">اختار سؤال من الاقتراحات أو اكتب سؤالك تحت</span>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div id="status" class="status" role="status" hidden>
+      <span class="typing-indicator"><i></i><i></i><i></i></span>
+      <span id="status-text">جاري تجهيز الرد...</span>
+    </div>
+    <div id="notice" class="flash flash-err ai-notice" role="alert" hidden></div>
+    <button type="button" class="stop-float" data-stop-audio hidden>{{ icon('stop') }} إيقاف الصوت</button>
+    <div id="previews" class="previews" aria-label="الصور المرفقة" hidden></div>
+
+    <form id="composer" class="composer" novalidate>
+      <label class="composer-label" for="text">اكتب رسالتك للمساعد</label>
+      <textarea id="text" rows="2" maxlength="2000" placeholder="مثلاً: أوراق الخيار بتصفر من الأطراف، أتصرف إزاي؟" aria-label="اكتب سؤالك"></textarea>
+      <div class="composer-bottom">
+        <div class="composer-tools">
+          <label class="icon-btn" for="pick" title="إرفاق صور">{{ icon('image') }} <span>إرفاق صورة</span>
+            <input id="pick" class="sr-only" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+          </label>
+          <label class="icon-btn" for="camera" title="التقاط صورة">{{ icon('camera') }} <span>الكاميرا</span>
+            <input id="camera" class="sr-only" type="file" accept="image/*" capture="environment">
+          </label>
+        </div>
+        <span class="composer-hint">Enter للإرسال · Shift + Enter لسطر جديد</span>
+        <button type="submit" id="send" class="btn send-btn">إرسال {{ icon('send') }}</button>
+      </div>
+    </form>
+    <footer class="chat-footer">
+      <span>{{ icon('check') }} صورك ومحادثتك خاصة بحسابك</span>
+      <form method="post" action="{{ url_for('assistant.reset') }}" class="reset-form" id="reset-form">
+        {{ csrf_field }}
+        <button class="link-btn-dark" type="submit">مسح المحادثة</button>
+      </form>
+    </footer>
+  </section>
+</div>
+<p class="ai-disclaimer">المساعد يقدم إرشاداً أولياً وليس تشخيصاً مؤكداً. قبل استخدام مبيد أو تغيير برنامج التسميد، راجع مهندساً زراعياً أو الإرشاد الزراعي.</p>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/assistant.js') }}" defer></script>
+{% endblock %}

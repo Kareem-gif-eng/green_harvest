@@ -1,0 +1,14 @@
+{% from "components/macros.html" import empty %}
+<h2>المستخدمون</h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th>المدينة</th></tr></thead>
+  <tbody>
+  {% for u in users %}
+    <tr><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ ROLES.get(u.role, u.role) }}</td><td>{{ u.city or '' }}</td></tr>
+  {% else %}
+    <tr><td colspan="4">{{ empty("لا يوجد مستخدمون.") }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>

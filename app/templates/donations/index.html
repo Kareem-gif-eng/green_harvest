@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import empty %}
+{% block title %}التبرعات{% endblock %}
+{% block content %}
+{% set L = {'requested': 'بانتظار رد المزارع', 'accepted': 'مقبول', 'declined': 'مرفوض', 'collected': 'تم الاستلام', 'available': 'متاح', 'reserved': 'محجوز'} %}
+<h1>التبرعات الغذائية</h1>
+
+{% if user.role == 'farmer' %}
+  <form method="post" class="card form-row">
+    {{ csrf_field }}
+    <label>المنتج<input id="product" name="product" required></label>
+    <label>الكمية (كجم)<input name="qty_kg" type="number" step="any" min="0.01" required></label>
+    <label>المدينة<input id="don_city" name="city"></label>
+    <label>متاح من<input type="date" name="available_from"></label>
+    <button class="btn">نشر التبرع</button>
+  </form>
+
+  <h2>عروضي</h2>
+  {% for d in rows %}
+    <div class="card list-item"><span>{{ d.product }} — {{ '%g'|format(d.qty_kg) }} كجم</span><span class="badge">{{ L[d.status] }}</span></div>
+  {% else %}{{ empty("لا توجد عروض.") }}{% endfor %}
+
+  <h2>طلبات الجمعيات</h2>
+  {% for r in reqs %}
+    <div class="card list-item">
+      <div>
+        <strong>{{ r.charity }}</strong> <span class="muted">{{ r.cphone or '' }}</span>
+        <span class="badge">{{ L[r.status] }}</span>
+        {% if r.pickup_time %}<div class="muted">الاستلام: {{ r.pickup_time }} — {{ r.pickup_place or '' }}</div>{% endif %}
+      </div>
+      {% if r.status == 'requested' %}
+        <form method="post" action="{{ url_for('donations.respond', i=r.id) }}" class="actions-inline">
+          {{ csrf_field }}
+          <button name="action" value="accept" class="btn">قبول</button>
+          <button name="action" value="decline" class="btn danger">رفض</button>
+        </form>
+      {% endif %}
+    </div>
+  {% else %}{{ empty("لا توجد طلبات بعد.") }}{% endfor %}
+
+{% else %}
+  <h2>تبرعات متاحة</h2>
+  <div class="grid">
+  {% for d in rows %}
+    <div class="card">
+      <strong>{{ d.product }}</strong>
+      <div>{{ '%g'|format(d.qty_kg) }} كجم — {{ d.city or '' }} — {{ d.farmer }}</div>
+      <form method="post" action="{{ url_for('donations.request_donation', i=d.id) }}">
+        {{ csrf_field }}<button class="btn">طلب التبرع</button>
+      </form>
+    </div>
+  {% else %}{{ empty("لا توجد تبرعات متاحة الآن.") }}{% endfor %}
+  </div>
+
+  <h2>طلباتي</h2>
+  {% for r in reqs %}
+    <div class="card">
+      <div class="list-item">
+        <span>{{ r.product }} ({{ '%g'|format(r.qty_kg) }} كجم) — {{ r.farmer }}</span>
+        <span class="badge">{{ L[r.status] }}</span>
+      </div>
+      {% if r.status == 'accepted' %}
+        <form method="post" action="{{ url_for('donations.schedule', i=r.id) }}" class="form-row">
+          {{ csrf_field }}
+          <label>موعد الاستلام<input type="datetime-local" name="pickup_time" value="{{ r.pickup_time or '' }}" required></label>
+          <label>مكان الاستلام<input name="pickup_place" value="{{ r.pickup_place or '' }}"></label>
+          <button class="btn">حفظ الموعد</button>
+        </form>
+        <form method="post" action="{{ url_for('donations.collected', i=r.id) }}">
+          {{ csrf_field }}<button class="btn">تأكيد الاستلام</button>
+        </form>
+      {% endif %}
+    </div>
+  {% else %}{{ empty("لم تطلب تبرعات بعد.") }}{% endfor %}
+{% endif %}
+{% endblock %}

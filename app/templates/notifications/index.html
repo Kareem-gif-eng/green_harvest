@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import empty %}
+{% block title %}الإشعارات{% endblock %}
+{% block content %}
+<h1>الإشعارات</h1>
+{% if rows %}
+  <form method="post" action="{{ url_for('notifications.index') }}">
+    {{ csrf_field }}<button class="btn">تحديد الكل كمقروء</button>
+  </form>
+{% endif %}
+{% for n in rows %}
+  <div class="card notice{% if not n.is_read %} unread{% endif %}">
+    <a href="{{ n.link or url_for('notifications.index') }}">{{ n.text }}</a>
+    <span class="muted">{{ n.created }}</span>
+  </div>
+{% else %}
+  {{ empty("لا توجد إشعارات.") }}
+{% endfor %}
+{% endblock %}

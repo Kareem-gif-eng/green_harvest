@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}دخول{% endblock %}
+{% block content %}
+<h1>دخول</h1>
+<form method="post" class="card form-narrow">
+  {{ csrf_field }}
+  <label>البريد الإلكتروني<input name="email" type="email" required></label>
+  <label>كلمة المرور<input name="password" type="password" required></label>
+  <button class="btn btn-block">دخول</button>
+</form>
+<p class="muted center">ليس لديك حساب؟ <a href="{{ url_for('auth.register') }}">أنشئ حساباً جديداً</a></p>
+{% endblock %}

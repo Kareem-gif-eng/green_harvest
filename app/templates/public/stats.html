@@ -1,0 +1,8 @@
+<div class="grid stats">
+  <div class="card stat"><span class="num">{{ '%g'|format(s.offered) }}</span><span class="muted">كجم معروضة (بيع + تبرع)</span></div>
+  <div class="card stat"><span class="num">{{ '%g'|format(s.sold) }}</span><span class="muted">كجم بيع مكتمل (مؤكد)</span></div>
+  <div class="card stat"><span class="num">{{ '%g'|format(s.agreed) }}</span><span class="muted">كجم متفق على التبرع بها (غير مؤكدة بعد)</span></div>
+  <div class="card stat"><span class="num">{{ '%g'|format(s.collected) }}</span><span class="muted">كجم تبرع تم استلامه (مؤكد)</span></div>
+  <div class="card stat"><span class="num">{{ s.completed }}</span><span class="muted">تبرعات مكتملة</span></div>
+  <div class="card stat"><span class="num">{{ s.farmers }} / {{ s.charities }}</span><span class="muted">مزارعون / جمعيات</span></div>
+</div>

@@ -1,0 +1,36 @@
+{% from "components/macros.html" import icon %}
+{% extends "base.html" %}
+{% from "components/macros.html" import empty %}
+{% block title %}تشخيص النبات{% endblock %}
+{% block content %}
+<h1>{{ icon('leaf') }} تشخيص النبات</h1>
+<p class="warn">لم يُربط نموذج ذكاء اصطناعي بعد. يتم حفظ طلباتك وصورك، ولا توجد نتيجة آلية حتى يتم ربط النموذج. اسأل <a href="{{ url_for('assistant.page') }}">مساعدك الزراعي</a> في الأثناء.</p>
+
+<form method="post" enctype="multipart/form-data" class="card form-narrow">
+  {{ csrf_field }}
+  <label>المحصول<input id="diag_crop" name="crop" required></label>
+  <label>صورة النبات
+    <input type="file" name="image" accept="image/png,image/jpeg,image/webp" capture="environment" required>
+  </label>
+  <label>الأعراض الظاهرة<textarea id="symptoms" name="symptoms" rows="3"></textarea></label>
+  <button class="btn">{{ icon('send') }} حفظ الطلب</button>
+</form>
+
+<h2>سجل التشخيصات</h2>
+{% for r in rows %}
+  <article class="card diag">
+    <img src="{{ url_for('media.uploaded', name=r.image) }}" alt="صورة {{ r.crop }}">
+    <div>
+      <strong>{{ r.crop }}</strong>
+      <span class="badge">{{ 'تم التشخيص' if r.status == 'done' else 'بانتظار نموذج الذكاء الاصطناعي' }}</span>
+      {% if r.symptoms %}<p class="muted">{{ r.symptoms }}</p>{% endif %}
+      {% if r.status == 'done' %}
+        <p><strong>{{ r.result }}</strong> (ثقة {{ (r.confidence * 100)|round|int }}٪) — {{ r.advice }}</p>
+        {% if r.confidence < 0.7 %}<p class="warn">النتيجة غير مؤكدة: اسأل <a href="{{ url_for('assistant.page') }}">مساعدك الزراعي</a>.</p>{% endif %}
+      {% endif %}
+    </div>
+  </article>
+{% else %}
+  {{ empty("لا توجد تشخيصات سابقة.") }}
+{% endfor %}
+{% endblock %}

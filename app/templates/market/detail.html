@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ p.name }}{% endblock %}
+{% block content %}
+<h1>{{ p.name }}</h1>
+<article class="card">
+  {% if p.image %}<img class="detail-img" src="{{ url_for('media.uploaded', name=p.image) }}" alt="{{ p.name }}">{% endif %}
+  <p>{{ '%g'|format(p.available_kg) }} كجم متاح — {{ '%g'|format(p.price_per_kg) }} ج/كجم — {{ p.city or '' }}</p>
+  <p class="muted">حصاد: {{ p.harvest_date or 'غير محدد' }} — البائع: {{ p.seller }}</p>
+  <p>{{ p.description or '' }}</p>
+</article>
+
+{% if user and user.id == p.seller_id %}
+  <div class="actions">
+    <a class="btn" href="{{ url_for('market.product_form', i=p.id) }}">تعديل</a>
+    <form method="post" action="{{ url_for('market.product_delete', i=p.id) }}" class="inline">
+      {{ csrf_field }}<button class="btn danger">حذف</button>
+    </form>
+  </div>
+{% elif user and user.role != 'admin' and p.status == 'active' %}
+  <form method="post" action="{{ url_for('market.order_add', i=p.id) }}" class="card form-narrow">
+    {{ csrf_field }}
+    <label>الكمية (كجم)
+      <input name="qty_kg" type="number" step="any" min="0.01" max="{{ p.available_kg }}" required>
+    </label>
+    <label>ملاحظة<input id="note" name="note"></label>
+    <button class="btn btn-block">إرسال طلب شراء</button>
+  </form>
+{% elif not user %}
+  <p><a class="btn" href="{{ url_for('auth.login') }}">سجّل الدخول لطلب الشراء</a></p>
+{% endif %}
+{% endblock %}

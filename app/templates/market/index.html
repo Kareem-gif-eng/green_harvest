@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import empty %}
+{% block title %}السوق{% endblock %}
+{% block content %}
+<h1>سوق الفائض الزراعي</h1>
+<form method="get" action="{{ url_for('market.index') }}" class="card form-row">
+  <label>بحث<input id="q" name="q" value="{{ a.q or '' }}"></label>
+  <label>المحصول<input id="crop" name="crop" value="{{ a.crop or '' }}"></label>
+  <label>المدينة<input id="city" name="city" value="{{ a.city or '' }}"></label>
+  <label>أقصى سعر/كجم<input name="max_price" value="{{ a.max_price or '' }}"></label>
+  <button class="btn">بحث</button>
+</form>
+<p class="muted">الدفع والتسليم بين البائع والمشتري مباشرة؛ لا يوجد دفع إلكتروني.</p>
+
+<div class="grid">
+{% for p in rows %}
+  <a class="card product-card" href="{{ url_for('market.detail', i=p.id) }}">
+    {% if p.image %}<img src="{{ url_for('media.uploaded', name=p.image) }}" alt="{{ p.name }}">{% else %}<img src="{{ url_for('static', filename='img/product-default.svg') }}" alt="منتج زراعي">{% endif %}
+    <strong>{{ p.name }}</strong>
+    <div>{{ '%g'|format(p.available_kg) }} كجم — {{ '%g'|format(p.price_per_kg) }} ج/كجم</div>
+    <div class="muted">{{ p.city or '' }} — {{ p.seller }}</div>
+  </a>
+{% else %}
+  {{ empty("لا توجد منتجات مطابقة.") }}
+{% endfor %}
+</div>
+{% endblock %}
