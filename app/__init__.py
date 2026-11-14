@@ -64,10 +64,10 @@ def create_app(db_path=None, uploads_dir=None):
     # إنشاء مجلد الرفع.
     os.makedirs(app.config["UPLOADS"], exist_ok=True)
 
-    # التحقق من إعداد Gemini.
+        # التحقق من إعداد Gemini.
     if not app.config["GEMINI_API_KEY"]:
         logging.getLogger("greenharvest").warning(
-            "GEMINI_API_KEY مش مضبوط؛ المساعد الذكي لن يعمل."
+            "GEMINI_API_KEY غير موجود. أضف المفتاح إلى ملف .env لتفعيل المساعد."
         )
 
     # تهيئة قاعدة البيانات.
